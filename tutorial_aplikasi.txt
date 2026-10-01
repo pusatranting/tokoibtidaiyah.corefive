@@ -48,16 +48,26 @@ B. KELOLA DATA (ADMIN PANEL)
    - Isi Nama, Kategori, Harga Jual, dan SKU/Barcode.
    - Jika produk punya variasi (Warna/Ukuran), Anda bisa menambahkannya di bagian Varian.
 
-2. Tambah Stok (Pembelian):
+2. Import / Upload Produk Sekaligus (Via Template):
+   - Buka Admin > Produk.
+   - Klik tombol "Import CSV" (ikon tanda panah bawah warna hijau).
+   - Klik tombol "Download Template" terlebih dahulu.
+   - Buka file template (.csv) yang terunduh menggunakan Microsoft Excel.
+   - Isi data produk di Excel tersebut: SKU Induk, Nama Produk, Kategori, Stok, Modal (HPP), Harga Jual, Berat, dan Deskripsi.
+   - Simpan (Save) file Excel tersebut dalam format CSV (Comma delimited).
+   - Kembali ke aplikasi, di kotak Import yang tadi, klik "Choose File" dan pilih file CSV yang sudah Anda isi.
+   - Klik "Proses Import". Produk Anda akan masuk sekaligus!
+
+3. Tambah Stok (Pembelian):
    - Jangan tambah stok manual di produk jika ingin mencatat HPP (Harga Pokok Penjualan).
    - Buka menu Pembelian (PO) > Tambah Pembelian.
    - Masukkan barang yang dibeli dari supplier dan harga belinya. Stok akan otomatis bertambah dan profit akan terhitung akurat (FIFO).
 
-3. Mengelola Pesanan Online (Toko/Shop):
+4. Mengelola Pesanan Online (Toko/Shop):
    - Jika ada pembeli yang memesan dari halaman web publik, akan masuk ke menu "Pesanan Online" atau "Transaksi".
    - Admin dapat memproses pesanan dan mengonfirmasi pembayaran pelanggan.
 
-4. Melihat Laporan Penjualan:
+5. Melihat Laporan Penjualan:
    - Buka Admin > Laporan.
    - Anda bisa filter berdasarkan Harian, Mingguan, Bulanan.
    - Tersedia tombol "Export Excel" dan cetak PDF.
