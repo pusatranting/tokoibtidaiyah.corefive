@@ -1,4 +1,4 @@
-<?php
+
 /**
  * Kasir Ibtidaiyah - Manajemen Pembelian (PO)
  */
