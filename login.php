@@ -108,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Login - TokoIbtidaiyah">
+    <meta name="description" content="Login - <?= htmlspecialchars(getSetting('store_name', APP_NAME)) ?>">
     <title>Login - <?= APP_NAME ?></title>
     <?php
     $storeLogo = getSetting('store_logo');

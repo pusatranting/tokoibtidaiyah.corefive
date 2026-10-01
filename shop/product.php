@@ -131,7 +131,7 @@ if (isset($_SESSION['shop_cart'])) {
     $cartCount = array_sum(array_column($_SESSION['shop_cart'], 'qty'));
 }
 
-$storeName  = 'TokoIbtidaiyah';
+$storeName  = getSetting('store_name', APP_NAME);
 $searchVal  = '';    // Tidak ada search di halaman produk
 $showSearch = false; // Sembunyikan search bar di navbar product page
 ?>

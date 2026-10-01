@@ -17,8 +17,8 @@ $favicon = $storeLogo ? BASE_URL . '/' . $storeLogo : ASSETS_URL . '/img/tokoibt
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5.0, user-scalable=yes">
-    <meta name="description" content="TokoIbtidaiyah - Pusat Pendidikan Santri">
-    <meta name="author" content="TokoIbtidaiyah">
+    <meta name="description" content="<?= htmlspecialchars(getSetting('store_name', APP_NAME)) ?> - Pusat Pendidikan Santri">
+    <meta name="author" content="<?= htmlspecialchars(getSetting('store_name', APP_NAME)) ?>">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="<?= APP_NAME ?>">

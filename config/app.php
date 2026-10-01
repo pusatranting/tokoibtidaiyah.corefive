@@ -61,7 +61,7 @@ if (session_status() === PHP_SESSION_NONE) {
 // =============================================
 // APPLICATION CONSTANTS
 // =============================================
-define('APP_NAME', 'TokoIbtidaiyah');
+define('APP_NAME', 'Toko Kitab Ibtidaiyah');
 define('APP_VERSION', '1.0.12');
 define('APP_TAGLINE', 'Toko Kitab MMU Ibtidaiyah');
 

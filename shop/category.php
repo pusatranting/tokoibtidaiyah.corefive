@@ -5,7 +5,7 @@
 require_once __DIR__ . '/../config/app.php';
 
 $db = Database::conn();
-$storeName = 'TokoIbtidaiyah';
+$storeName = getSetting('store_name', APP_NAME);
 
 $search = sanitize($_GET['search'] ?? '');
 $catId = (int)($_GET['category'] ?? 0);

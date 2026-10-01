@@ -487,7 +487,7 @@ function getCategoryIcon($name) {
             </div>
             <div class="shop-footer-bottom footer-bottom-flex">
                 <div class="footer-copyright">
-                    &copy; <?= date('Y') ?> <?= $storeName ?>. Toko Online Resmi Milik TokoIbtidaiyah v<?= APP_VERSION ?>
+                    &copy; <?= date('Y') ?> <?= $storeName ?>. Toko Online Resmi Milik <?= $storeName ?> v<?= APP_VERSION ?>
                 </div>
             </div>
         </footer>
