@@ -1,0 +1,10 @@
+# Cegah eksekusi skrip di direktori upload (defense-in-depth)
+php_flag engine off
+<FilesMatch "\.(php|php3|php4|php5|php7|phtml|pht|phar|cgi|pl|py|asp|aspx|sh)$">
+    Require all denied
+</FilesMatch>
+
+# Hanya izinkan file gambar diakses
+<FilesMatch "(?i)\.(jpe?g|png|webp|gif|bmp|svg|ico)$">
+    Require all granted
+</FilesMatch>
