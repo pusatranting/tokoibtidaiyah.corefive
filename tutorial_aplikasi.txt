@@ -1,0 +1,82 @@
+================================================
+TUTORIAL SINGKAT APLIKASI KASIR & TOKO IBTIDAIYAH
+================================================
+
+Aplikasi ini memiliki 3 bagian utama:
+1. Halaman Toko / Katalog (Untuk Pelanggan)
+2. Halaman Kasir / POS (Untuk transaksi langsung di toko)
+3. Halaman Admin (Untuk laporan, produk, pengaturan)
+
+------------------------------------------------
+A. CARA MENGGUNAKAN KASIR (POS)
+------------------------------------------------
+1. Buka Shift Kasir:
+   Sebelum bisa melakukan transaksi, kasir harus membuka shift.
+   - Buka menu Admin > Shift Kasir (atau klik peringatan di halaman kasir).
+   - Masukkan saldo modal awal mesin kasir.
+   - Klik "Buka Shift".
+
+2. Melakukan Transaksi:
+   - Buka halaman POS (Kasir).
+   - Cari produk lewat kotak pencarian atau klik kategori.
+   - Klik produk untuk memasukkannya ke Keranjang (sebelah kanan).
+   - (Opsional) Ubah kuantitas (Qty), masukkan diskon, atau masukkan Biaya Tambahan (seperti ongkir/packing) langsung di area keranjang.
+   - (Opsional) Pilih Pelanggan jika ingin mencatat nama pembeli atau melakukan Kasbon.
+
+3. Proses Pembayaran:
+   - Klik tombol "Bayar".
+   - Masukkan nominal uang yang diterima pelanggan.
+   - Pilih metode pembayaran (Tunai, BCA, QRIS, dll).
+   - Klik "Proses Pembayaran".
+   - Struk bisa langsung dicetak melalui browser atau Printer Bluetooth (Thermal 58mm).
+
+4. Transaksi Kasbon / Hutang:
+   - Pastikan Anda sudah memilih "Pelanggan" dari daftar di keranjang.
+   - Klik tombol "Kasbon" (warna emas).
+   - Transaksi akan dicatat sebagai hutang yang bisa dicek di menu Admin > Piutang.
+
+5. Tutup Shift:
+   - Saat jam kerja berakhir, ke menu Admin > Shift Kasir.
+   - Hitung total uang tunai fisik yang ada di laci.
+   - Klik "Tutup Shift" untuk merekam selisih antara sistem dan fisik.
+
+------------------------------------------------
+B. KELOLA DATA (ADMIN PANEL)
+------------------------------------------------
+1. Tambah Produk Baru:
+   - Buka Admin > Produk > Tambah Produk.
+   - Isi Nama, Kategori, Harga Jual, dan SKU/Barcode.
+   - Jika produk punya variasi (Warna/Ukuran), Anda bisa menambahkannya di bagian Varian.
+
+2. Tambah Stok (Pembelian):
+   - Jangan tambah stok manual di produk jika ingin mencatat HPP (Harga Pokok Penjualan).
+   - Buka menu Pembelian (PO) > Tambah Pembelian.
+   - Masukkan barang yang dibeli dari supplier dan harga belinya. Stok akan otomatis bertambah dan profit akan terhitung akurat (FIFO).
+
+3. Mengelola Pesanan Online (Toko/Shop):
+   - Jika ada pembeli yang memesan dari halaman web publik, akan masuk ke menu "Pesanan Online" atau "Transaksi".
+   - Admin dapat memproses pesanan dan mengonfirmasi pembayaran pelanggan.
+
+4. Melihat Laporan Penjualan:
+   - Buka Admin > Laporan.
+   - Anda bisa filter berdasarkan Harian, Mingguan, Bulanan.
+   - Tersedia tombol "Export Excel" dan cetak PDF.
+   - Laporan sudah mencakup Subtotal, Diskon, Biaya Tambahan, dan Total Akhir.
+
+------------------------------------------------
+C. PENGATURAN TOKO
+------------------------------------------------
+- Buka Admin > Pengaturan.
+- Anda bisa mengubah Nama Toko, Alamat, Nomor WA, dan Logo.
+- Pengaturan nomor rekening bank / QRIS e-wallet untuk pembayaran online juga ada di halaman ini.
+
+------------------------------------------------
+D. PRINTER BLUETOOTH (MOBILE)
+------------------------------------------------
+- Jika menggunakan HP/Tablet Android, pastikan bluetooth menyala dan printer sudah di-pairing (sandi biasanya 0000 atau 1234).
+- Di layar sukses transaksi kasir, klik tombol cetak bluetooth.
+- Browser akan meminta izin koneksi ke perangkat bluetooth Anda.
+
+================================================
+Semoga tutorial ini membantu Anda!
+================================================
