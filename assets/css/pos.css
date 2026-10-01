@@ -511,6 +511,26 @@ body.hide-empty-stock .pos-product-card.out-of-stock {
     background: var(--danger-bg);
 }
 
+/* Biaya Tambahan Section (in cart) */
+.pos-cart-fee {
+    padding: 10px 16px;
+    border-top: 1px solid var(--border-color);
+    background: var(--gray-50);
+    flex-shrink: 0;
+}
+
+.pos-cart-fee input[type="number"],
+.pos-cart-fee input[type="text"] {
+    font-family: var(--font-primary);
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.pos-cart-fee input:focus {
+    border-color: var(--primary-400) !important;
+    background: #fff !important;
+}
+
 /* Cart Footer: Totals & Payment */
 .pos-cart-footer {
     border-top: 2px solid var(--border-color);

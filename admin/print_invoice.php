@@ -174,7 +174,7 @@ $receiptFooter = getSetting('receipt_footer', 'Terima kasih atas kunjungan Anda'
         $itemSubtotal = $item['qty'] * $item['unit_price'];
     ?>
         <div class="mb-2" style="font-size:11px;">
-            <div style="margin-bottom: 3px; text-align: left;"><?= $index + 1 ?>. <?= h($item['product_name']) ?><?= !empty($item['variation_name']) ? ' ('.h($item['variation_name']).')' : '' ?></div>
+            <div style="margin-bottom: 3px; text-align: left;"><?= $index + 1 ?>. <?= h($item['product_name']) ?></div>
             <div class="flex-between" style="font-size:10px; color:#555;"><span><?= $item['qty'] ?> x <?= formatRupiah($item['unit_price']) ?></span><span class="text-bold" style="color:#000;"> <?= formatRupiah($itemSubtotal) ?></span></div>
         </div>
     <?php endforeach; ?>
@@ -185,7 +185,7 @@ $receiptFooter = getSetting('receipt_footer', 'Terima kasih atas kunjungan Anda'
         $isAddition = ($change['type'] ?? '') === 'addition';
     ?>
         <div class="mb-2" style="font-size:11px;">
-            <div style="margin-bottom: 3px; text-align: left;"><?= $index + 1 ?>. <?= h($change['product_name']) ?><?= !empty($change['variation_name']) ? ' ('.h($change['variation_name']).')' : '' ?></div>
+            <div style="margin-bottom: 3px; text-align: left;"><?= $index + 1 ?>. <?= h($change['product_name']) ?></div>
             <div class="flex-between" style="font-size:10px; color:<?= $isAddition ? '#555' : 'red' ?>;"><span><?= $isAddition ? '+' : '-' ?><?= $change['qty'] ?> x <?= formatRupiah($change['unit_price']) ?></span><span class="text-bold" style="color:<?= $isAddition ? '#000' : 'red' ?>;"> <?= $isAddition ? '+' : '-' ?><?= formatRupiah($changeSubtotal) ?></span></div>
         </div>
     <?php endforeach; ?>
@@ -194,7 +194,7 @@ $receiptFooter = getSetting('receipt_footer', 'Terima kasih atas kunjungan Anda'
         $totalQty += $item['qty'];
     ?>
         <div class="mb-2" style="font-size:11px;">
-            <div style="margin-bottom: 3px; text-align: left;"><?= $index + 1 ?>. <?= h($item['product_name']) ?><?= $item['variation_name'] ? ' ('.h($item['variation_name']).')' : '' ?></div>
+            <div style="margin-bottom: 3px; text-align: left;"><?= $index + 1 ?>. <?= h($item['product_name']) ?></div>
             <div class="flex-between" style="font-size:10px; color:#555;">
                 <span><?= $item['qty'] ?> x <?= formatRupiah($item['unit_price']) ?></span>
                 <span class="text-bold" style="color:#000;"> <?= formatRupiah($item['subtotal']) ?></span>
@@ -209,7 +209,7 @@ $receiptFooter = getSetting('receipt_footer', 'Terima kasih atas kunjungan Anda'
     <div class="mb-2 text-bold text-center" style="font-size:11px;">TRANSAKSI AWAL / RETUR</div>
     <?php foreach ($returnedItems as $ri): ?>
         <div class="mb-2" style="font-size:11px;">
-            <div style="margin-bottom: 3px; text-align: left;"><?= h($ri['product_name']) ?><?= $ri['variation_name'] ? ' ('.h($ri['variation_name']).')' : '' ?></div>
+            <div style="margin-bottom: 3px; text-align: left;"><?= h($ri['product_name']) ?></div>
             <div style="font-size:10px; color:#555;">Awal: <?= (int)$ri['qty'] + (int)$ri['qty_returned'] ?> x <?= formatRupiah($ri['unit_price']) ?></div>
             <div style="font-size:10px; color:red;">Retur: -<?= $ri['qty_returned'] ?> x <?= formatRupiah($ri['unit_price']) ?></div>
             <div class="text-right text-bold" style="color:red;">-<?= formatRupiah($ri['refund_subtotal']) ?></div>
@@ -219,10 +219,10 @@ $receiptFooter = getSetting('receipt_footer', 'Terima kasih atas kunjungan Anda'
     <?php endif; ?>
     
     <div style="font-size:11px;">
-        <?php if ($editHistory || $sale['discount_amount'] > 0 || $totalRefund > 0): ?>
+        <?php if ($editHistory || $sale['discount_amount'] > 0 || $totalRefund > 0 || ($sale['additional_fee'] ?? 0) > 0): ?>
         <?php if ($editHistory): ?>
         <div class="flex-between mb-2"><span>Total Awal</span><span><?= formatRupiah($editHistory['original_total']) ?></span></div>
-        <div class="flex-between mb-2"><span>Total Selisih</span><span style="color:<?= $editHistory['difference'] < 0 ? 'red' : '#000' ?>;"><?= $editHistory['difference'] >= 0 ? '+' : '-' ?><?= formatRupiah(abs($editHistory['difference'])) ?></span></div>
+        <div class="flex-between mb-2"><span>Total Selisih</span><span style="color:<?= $editHistory['difference'] < 0 ? 'red' : '#000' ?>;"> <?= $editHistory['difference'] >= 0 ? '+' : '-' ?><?= formatRupiah(abs($editHistory['difference'])) ?></span></div>
         <?php endif; ?>
         <div class="flex-between mb-2">
             <span>Subtotal</span>
@@ -232,6 +232,12 @@ $receiptFooter = getSetting('receipt_footer', 'Terima kasih atas kunjungan Anda'
         <div class="flex-between mb-2">
             <span>Diskon</span>
             <span>-<?= formatRupiah($sale['discount_amount']) ?></span>
+        </div>
+        <?php endif; ?>
+        <?php if (($sale['additional_fee'] ?? 0) > 0): ?>
+        <div class="flex-between mb-2">
+            <span><?= h(!empty($sale['additional_fee_label']) ? $sale['additional_fee_label'] : 'Biaya Tambahan') ?></span>
+            <span>+<?= formatRupiah($sale['additional_fee']) ?></span>
         </div>
         <?php endif; ?>
         <?php if ($totalRefund > 0): ?>
@@ -342,7 +348,6 @@ $receiptFooter = getSetting('receipt_footer', 'Terima kasih atas kunjungan Anda'
                     <td style="text-align:center;"><?= $no++ ?></td>
                     <td style="text-align:left;">
                         <?= h($item['product_name']) ?>
-                        <?= $item['variation_name'] ? ' <small style="color:#666;">('.h($item['variation_name']).')</small>' : '' ?>
                     </td>
                     <td style="text-align:center;"><?= formatRupiah($item['unit_price']) ?></td>
                     <td style="text-align:center;"><?= $item['qty'] ?></td>
@@ -359,7 +364,6 @@ $receiptFooter = getSetting('receipt_footer', 'Terima kasih atas kunjungan Anda'
                     <td style="text-align:center;">-</td>
                     <td style="text-align:left;">
                         <?= h($ri['product_name']) ?>
-                        <?= $ri['variation_name'] ? ' <small>('.h($ri['variation_name']).')</small>' : '' ?>
                     </td>
                     <td style="text-align:center;"><?= formatRupiah($ri['unit_price']) ?></td>
                     <td style="text-align:center;">-<?= $ri['qty_returned'] ?></td>
@@ -378,11 +382,12 @@ $receiptFooter = getSetting('receipt_footer', 'Terima kasih atas kunjungan Anda'
                 </tr>
                 <?php endif; ?>
                 
-                <?php if ($sale['discount_amount'] > 0 || $totalRefund > 0): ?>
+                <?php if ($sale['discount_amount'] > 0 || $totalRefund > 0 || ($sale['additional_fee'] ?? 0) > 0): ?>
                 <tr>
                     <td colspan="5" style="text-align:right; border-top: 2px solid #ddd; padding-top: 10px; font-size: 13px;">
                         Subtotal: <?= formatRupiah($sale['total_amount']) ?><br>
                         <?php if ($sale['discount_amount'] > 0): ?>Diskon: -<?= formatRupiah($sale['discount_amount']) ?><br><?php endif; ?>
+                        <?php if (($sale['additional_fee'] ?? 0) > 0): ?><?= h(!empty($sale['additional_fee_label']) ? $sale['additional_fee_label'] : 'Biaya Tambahan') ?>: +<?= formatRupiah($sale['additional_fee']) ?><br><?php endif; ?>
                         <?php if ($totalRefund > 0): ?><span style="color:red;">Total Retur: -<?= formatRupiah($totalRefund) ?></span><br><?php endif; ?>
                     </td>
                 </tr>

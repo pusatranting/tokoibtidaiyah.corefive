@@ -182,6 +182,24 @@ class BluetoothPrinter {
         lineDashed();
         
         // Totals
+        const totalAmount = data.total_amount || data.grand_total;
+        const discountAmount = data.discount_amount || 0;
+        const additionalFee = data.additional_fee || 0;
+        const additionalFeeLabel = unescapeHtml(data.additional_fee_label || 'Biaya Tambahan');
+
+        // Breakdown: subtotal, diskon, biaya tambahan (only if needed)
+        if (discountAmount > 0 || additionalFee > 0) {
+            lineDashed();
+            formatRowLn("Subtotal", formatRupiah(totalAmount));
+            if (discountAmount > 0) {
+                formatRowLn("Diskon", "-" + formatRupiah(discountAmount));
+            }
+            if (additionalFee > 0) {
+                formatRowLn(additionalFeeLabel, "+" + formatRupiah(additionalFee));
+            }
+            lineDashed();
+        }
+
         push(CMD_BOLD_ON);
         formatRowLn("TOTAL", formatRupiah(data.grand_total || 0));
         push(CMD_BOLD_OFF);

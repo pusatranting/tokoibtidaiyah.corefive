@@ -285,7 +285,7 @@ if (isset($_GET['export']) && $_GET['export'] === 'excel') {
     header('Content-Disposition: attachment; filename=laporan_penjualan_' . $dateFrom . '_' . $dateTo . '.xls');
     
     echo '<table border="1">';
-    echo '<tr><th style="background:#f8f9fa;">Invoice</th><th style="background:#f8f9fa;">Tanggal</th><th style="background:#f8f9fa;">Pelanggan</th><th style="background:#f8f9fa;">Kasir</th><th style="background:#f8f9fa;">Sumber</th><th style="background:#f8f9fa;">Metode Bayar</th><th style="background:#f8f9fa;">Total</th><th style="background:#f8f9fa;">Status</th></tr>';
+    echo '<tr><th style="background:#f8f9fa;">Invoice</th><th style="background:#f8f9fa;">Tanggal</th><th style="background:#f8f9fa;">Pelanggan</th><th style="background:#f8f9fa;">Kasir</th><th style="background:#f8f9fa;">Sumber</th><th style="background:#f8f9fa;">Metode Bayar</th><th style="background:#f8f9fa;">Biaya Tambahan</th><th style="background:#f8f9fa;">Keterangan Biaya</th><th style="background:#f8f9fa;">Total</th><th style="background:#f8f9fa;">Status</th></tr>';
     
     foreach ($transactions as $t) {
         echo '<tr>';
@@ -295,6 +295,8 @@ if (isset($_GET['export']) && $_GET['export'] === 'excel') {
         echo '<td>' . htmlspecialchars($t['cashier_name'] ?? '-') . '</td>';
         echo '<td>' . htmlspecialchars($t['sale_source']) . '</td>';
         echo '<td>' . htmlspecialchars($t['payment_method'] ?? '-') . '</td>';
+        echo '<td>' . ($t['additional_fee'] ?? 0) . '</td>';
+        echo '<td>' . htmlspecialchars($t['additional_fee_label'] ?? '-') . '</td>';
         echo '<td>' . $t['grand_total'] . '</td>';
         echo '<td>' . htmlspecialchars($t['status']) . '</td>';
         echo '</tr>';
@@ -309,7 +311,6 @@ if (isset($_GET['export']) && $_GET['export'] === 'sku_excel') {
     header('Content-Disposition: attachment; filename=laporan_penjualan_sku_' . $dateFrom . '_' . $dateTo . '.xls');
     
     echo '<table border="1">';
-    echo '<tr><th style="background:#f8f9fa;">SKU</th><th style="background:#f8f9fa;">Nama Produk</th><th style="background:#f8f9fa;">Varian</th><th style="background:#f8f9fa;">Kategori</th><th style="background:#f8f9fa;">Total Terjual</th><th style="background:#f8f9fa;">Total Pendapatan</th></tr>';
     
     $stmtSKU = $db->prepare("
         SELECT 
@@ -332,11 +333,12 @@ if (isset($_GET['export']) && $_GET['export'] === 'sku_excel') {
     $stmtSKU->execute($params);
     $skuData = $stmtSKU->fetchAll();
     
+        echo '<tr><th style="background:#f8f9fa;">SKU</th><th style="background:#f8f9fa;">Nama Produk</th><th style="background:#f8f9fa;">Kategori</th><th style="background:#f8f9fa;">Total Terjual</th><th style="background:#f8f9fa;">Total Pendapatan</th></tr>';
+    
     foreach ($skuData as $row) {
         echo '<tr>';
         echo '<td>' . htmlspecialchars($row['sku']) . '</td>';
         echo '<td>' . htmlspecialchars($row['product_name']) . '</td>';
-        echo '<td>' . htmlspecialchars($row['variation_name'] ?? '-') . '</td>';
         echo '<td>' . htmlspecialchars($row['category_name'] ?: 'Tanpa Kategori') . '</td>';
         echo '<td>' . $row['total_qty'] . '</td>';
         echo '<td>' . $row['total_revenue'] . '</td>';
@@ -512,11 +514,11 @@ include INCLUDES_PATH . '/header.php';
         <div class="table-responsive">
             <table class="table">
                 <thead>
-                    <tr><th>Invoice</th><th>Tanggal</th><th>Pelanggan</th><th>Kasir</th><th>Sumber</th><th>Metode Bayar</th><th>Total</th><th>Status</th><th>Aksi</th></tr>
+                    <tr><th>Invoice</th><th>Tanggal</th><th>Pelanggan</th><th>Kasir</th><th>Sumber</th><th>Metode Bayar</th><th>Biaya Tambahan</th><th>Keterangan</th><th>Total</th><th>Status</th><th>Aksi</th></tr>
                 </thead>
                 <tbody>
                     <?php if (empty($transactions)): ?>
-                        <tr><td colspan="8" class="text-center text-muted" style="padding:40px;">Tidak ada transaksi di periode ini</td></tr>
+                        <tr><td colspan="9" class="text-center text-muted" style="padding:40px;">Tidak ada transaksi di periode ini</td></tr>
                     <?php endif; ?>
                     <?php foreach ($transactions as $t): ?>
                         <tr>
@@ -526,6 +528,8 @@ include INCLUDES_PATH . '/header.php';
                             <td data-label="Kasir" class="text-sm"><?= htmlspecialchars($t['cashier_name'] ?? '-') ?></td>
                             <td data-label="Sumber"><span class="badge <?= $t['sale_source']==='POS' ? 'badge-primary' : 'badge-info' ?>"><?= $t['sale_source'] ?></span></td>
                             <td data-label="Metode Bayar"><?= htmlspecialchars($t['payment_method'] ?? '-') ?></td>
+                            <td data-label="Biaya Tambahan" class="text-right"><?= formatRupiah($t['additional_fee'] ?? 0) ?></td>
+                            <td data-label="Keterangan" class="text-sm"><?= htmlspecialchars($t['additional_fee_label'] ?? '-') ?></td>
                             <td data-label="Total" class="text-bold"><?= formatRupiah($t['grand_total']) ?></td>
                             <td data-label="Status">
                                 <?php $sb = ['Paid'=>'badge-success','Debt'=>'badge-warning','Pending'=>'badge-gray','Cancelled'=>'badge-danger']; ?>
@@ -698,7 +702,7 @@ async function searchInvoiceForReportReturn() {
                 html += `
                     <div style="background:#fff; border:1px solid var(--gray-200); border-radius:8px; padding:12px 16px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
                         <div>
-                            <div style="font-weight:600; color:var(--gray-800); font-size:0.95rem; margin-bottom:4px;">${item.product_name} ${item.variation_name ? `(${item.variation_name})` : ''}</div>
+                            <div style="font-weight:600; color:var(--gray-800); font-size:0.95rem; margin-bottom:4px;">${item.product_name}</div>
                             <div style="font-size:0.85rem; color:var(--gray-500);">Harga: Rp ${Math.round(item.unit_price).toLocaleString('id-ID')} | Maks Retur: ${item.qty_returnable}</div>
                         </div>
                         <div style="display:flex; gap:8px; align-items:center;">
@@ -867,7 +871,7 @@ async function openReportEditModal(invoiceNumber) {
             const activeQty = Math.max(0, parseInt(item.qty, 10) - parseInt(item.qty_returned || 0, 10));
             return `
                 <div class="report-edit-item" data-detail-id="${item.sale_detail_id}" data-variation-id="${item.variation_id}" style="border:1px solid var(--gray-200); border-radius:8px; padding:12px; background:#fff;">
-                    <div style="font-weight:600; color:var(--gray-800); margin-bottom:8px;">${reportEditEscape(item.product_name)}${item.variation_name ? ' - ' + reportEditEscape(item.variation_name) : ''}</div>
+                    <div style="font-weight:600; color:var(--gray-800); margin-bottom:8px;">${reportEditEscape(item.product_name)}</div>
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                         <label style="font-size:0.8rem; color:var(--gray-600);">Jumlah
                             <input type="number" class="form-control report-edit-qty" min="0" value="${activeQty}" style="margin-top:4px;">
@@ -1022,7 +1026,7 @@ async function openAdminReturnModal(saleId, invoiceNo) {
                 html += `
                     <div class="return-item-row-admin">
                         <div class="return-item-info-admin">
-                            <div class="return-item-name-admin">${item.product_name} ${item.variation_name ? `(${item.variation_name})` : ''}</div>
+                            <div class="return-item-name-admin">${item.product_name}</div>
                             <div class="return-item-meta-admin">Dibeli: ${item.qty} × ${formatRupiah(item.unit_price)} | Sudah Retur: ${item.qty_returned}</div>
                         </div>
                         <div class="return-item-inputs-admin">

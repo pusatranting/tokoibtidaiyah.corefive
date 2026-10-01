@@ -98,6 +98,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         logActivity('Update', 'Pengaturan', 'Memperbarui metode pembayaran e-commerce.');
+    } elseif ($actionType === 'admin_wa') {
+        // Admin WhatsApp untuk Konfirmasi Pesanan
+        for ($i = 1; $i <= 3; $i++) {
+            updateSetting("admin_wa_name_$i", sanitize($_POST["admin_wa_name_$i"] ?? ''));
+            updateSetting("admin_wa_phone_$i", sanitize($_POST["admin_wa_phone_$i"] ?? ''));
+        }
+        logActivity('Update', 'Pengaturan', 'Memperbarui nomor WhatsApp admin konfirmasi pesanan.');
     }
     
     flashMessage('success', 'Pengaturan berhasil diperbarui.');
@@ -235,6 +242,43 @@ include INCLUDES_PATH . '/header.php';
                     </div>
                     <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 12px;">
                         Simpan Pengaturan
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <!-- Admin WA Konfirmasi Pesanan -->
+        <form method="POST" action="">
+            <input type="hidden" name="action_type" value="admin_wa">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">📱 Admin WA Konfirmasi Pesanan</h3>
+                </div>
+                <div class="card-body">
+                    <div style="background: var(--gray-50); border: 1.5px solid var(--border-color); border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; font-size: 0.8125rem; color: var(--gray-600); line-height: 1.5;">
+                        Nomor WhatsApp admin yang akan ditampilkan kepada pelanggan saat konfirmasi pesanan. Pelanggan bisa memilih admin mana yang akan dihubungi.
+                    </div>
+                    <?php for ($i = 1; $i <= 3; $i++): ?>
+                    <div style="background: var(--gray-50); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 16px; margin-bottom: 12px;">
+                        <div style="font-weight: 600; font-size: 0.85rem; color: var(--gray-700); margin-bottom: 10px;">Admin <?= $i ?></div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label">Nama Admin</label>
+                                <input type="text" name="admin_wa_name_<?= $i ?>" class="form-control" 
+                                       value="<?= htmlspecialchars(getSetting("admin_wa_name_$i", '')) ?>" 
+                                       placeholder="Contoh: Admin <?= $i ?>">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label">No. WhatsApp</label>
+                                <input type="text" name="admin_wa_phone_<?= $i ?>" class="form-control" 
+                                       value="<?= htmlspecialchars(getSetting("admin_wa_phone_$i", '')) ?>" 
+                                       placeholder="Contoh: 081234567890">
+                            </div>
+                        </div>
+                    </div>
+                    <?php endfor; ?>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 4px;">
+                        Simpan Admin WA
                     </button>
                 </div>
             </div>

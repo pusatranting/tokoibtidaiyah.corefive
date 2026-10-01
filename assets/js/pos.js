@@ -119,7 +119,6 @@ async function loadProducts(query = '', category = 0) {
                     </div>
                     <div class="pos-product-info">
                         <div class="pos-product-name">${escHtml(p.product_name)}</div>
-                        ${p.variation_name ? `<div class="pos-product-variant">${escHtml(p.variation_name)}</div>` : ''}
                         <div class="pos-product-price">${formatRupiah(p.selling_price)}</div>
                         ${p.stock_qty !== null ? `<div class="pos-product-stock ${p.stock_qty <= 5 ? 'low' : ''}">Stok: ${p.stock_qty}</div>` : `<div class="pos-product-stock" style="color: var(--primary-600); font-weight: 600;">Tersedia</div>`}
                     </div>
@@ -294,8 +293,7 @@ function addToCart(product) {
     }).join('');
 
     document.getElementById('priceTypeModalBody').innerHTML = rows;
-    document.getElementById('priceTypeModalProductName').textContent =
-        product.product_name + (product.variation_name ? ' - ' + product.variation_name : '');
+    document.getElementById('priceTypeModalProductName').textContent = product.product_name;
     openModal('modalPriceType');
 }
 
@@ -337,8 +335,7 @@ function openItemDetailPopup(product, selectedTypeName, defaultTier) {
     const modal = document.getElementById('modalItemDetail');
 
     // Header
-    modal.querySelector('#itemDetailProductName').textContent =
-        product.product_name + (product.variation_name ? ' - ' + product.variation_name : '');
+    modal.querySelector('#itemDetailProductName').textContent = product.product_name;
     modal.querySelector('#itemDetailPriceType').textContent = selectedTypeName;
 
     // Qty
@@ -739,7 +736,33 @@ function renderCart() {
     let currentCount = getCartItemCount();
     if (countEl) countEl.textContent = currentCount;
     if (floatingCount) floatingCount.textContent = currentCount;
-    if (totalEl) totalEl.textContent = formatRupiah(getCartTotal());
+
+    // Compute grand total = subtotal + additional fee
+    const subtotal = getCartTotal();
+    const additionalFee = parseFloat(document.getElementById('paymentAdditionalFee')?.value) || 0;
+    const grandTotal = subtotal + additionalFee;
+
+    // Update subtotal row (only show if there's a fee)
+    const subtotalRow = document.getElementById('cartSubtotalRow');
+    const subtotalEl = document.getElementById('cartSubtotal');
+    const feeRow = document.getElementById('cartFeeRow');
+    const feeLabelEl = document.getElementById('cartFeeLabel');
+    const feeDisplayEl = document.getElementById('cartFeeDisplay');
+
+    if (additionalFee > 0) {
+        const feeLabelInput = document.getElementById('paymentFeeLabel');
+        const feeText = feeLabelInput?.value.trim() || 'Biaya Tambahan';
+        if (subtotalRow) subtotalRow.style.display = 'flex';
+        if (subtotalEl) subtotalEl.textContent = formatRupiah(subtotal);
+        if (feeRow) feeRow.style.display = 'flex';
+        if (feeLabelEl) feeLabelEl.textContent = feeText;
+        if (feeDisplayEl) feeDisplayEl.textContent = '+' + formatRupiah(additionalFee);
+        if (totalEl) totalEl.textContent = formatRupiah(grandTotal);
+    } else {
+        if (subtotalRow) subtotalRow.style.display = 'none';
+        if (feeRow) feeRow.style.display = 'none';
+        if (totalEl) totalEl.textContent = formatRupiah(subtotal);
+    }
 
     if (!container) return;
 
@@ -781,7 +804,6 @@ function renderCart() {
             <div class="pos-cart-item" onclick="openEditCartItem(${i})" style="cursor:pointer;">
                 <div class="pos-cart-item-info">
                     <div class="pos-cart-item-name">${escHtml(item.product_name)}</div>
-                    ${item.variation_name ? `<div class="pos-cart-item-variant">${escHtml(item.variation_name)}</div>` : ''}
                     <div class="pos-cart-item-price">
                         ${formatRupiah(item.unit_price)}
                         ${item.tier_label && item.tier_label !== 'Eceran' ? `<span class="tier-label">${escHtml(item.tier_label)}</span>` : ''}
@@ -939,6 +961,12 @@ function onPaymentInput(input) {
     calculateChange();
 }
 
+// Called when Biaya Tambahan or Keterangan inputs change in cart
+function onCartFeeInput() {
+    renderCart();     // update cart total display
+    calculateChange(); // update payment modal total (if open)
+}
+
 function calculateChange() {
     const total = getCartTotal();
     const discountEl = document.getElementById('paymentDiscount');
@@ -1010,6 +1038,7 @@ async function submitPayment() {
 
     const feeEl = document.getElementById('paymentAdditionalFee');
     const additionalFee = parseFloat(feeEl?.value) || 0;
+    const additionalFeeLabel = document.getElementById('paymentFeeLabel')?.value.trim() || '';
 
     let discountAmount = 0;
     if (discType === 'persen') {
@@ -1055,6 +1084,7 @@ async function submitPayment() {
             paid_amount: isDebt ? 0 : paid,
             discount_percent: discountEl ? discountPercent : 0,
             additional_fee: additionalFee,
+            additional_fee_label: additionalFeeLabel,
             is_debt: isDebt,
             notes: '',
         };
@@ -1077,6 +1107,13 @@ async function submitPayment() {
             clearCustomer();
             renderCart();
             loadProducts();
+            // Reset fee and discount inputs
+            if (feeEl) feeEl.value = '0';
+            if (discountEl) discountEl.value = '0';
+            const feeLabelEl = document.getElementById('paymentFeeLabel');
+            if (feeLabelEl) feeLabelEl.value = '';
+            const feeDescRow = document.getElementById('feeDescRow');
+            if (feeDescRow) feeDescRow.style.display = 'none';
             showToast('Transaksi berhasil! ' + data.data.invoice_number, 'success');
         } else {
             showToast(data.message || 'Gagal memproses transaksi', 'error');
@@ -1338,7 +1375,7 @@ async function searchInvoiceForReturn() {
                 ${items.map(item => `
                     <div style="background:#fff; border:1px solid var(--gray-200); border-radius:8px; padding:12px 16px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
                         <div>
-                            <div style="font-weight:600; color:var(--gray-800); font-size:0.95rem; margin-bottom:4px;">${escHtml(item.product_name)} ${item.variation_name ? `(${escHtml(item.variation_name)})` : ''}</div>
+                            <div style="font-weight:600; color:var(--gray-800); font-size:0.95rem; margin-bottom:4px;">${escHtml(item.product_name)}</div>
                             <div style="font-size:0.85rem; color:var(--gray-500);">Harga: ${formatRupiah(item.unit_price)} | Maks Retur: ${item.qty_returnable}</div>
                         </div>
                         <div style="display:flex; gap:8px; align-items:center;">
@@ -1613,7 +1650,7 @@ function generateReceiptPrintHTML(data) {
     // Items
     const itemsHtml = data.items.map((item, index) => `
         <div class="receipt-item">
-            <div class="receipt-item-name">${index + 1}. ${escHtml(item.product_name)}${item.variation_name ? ' (' + escHtml(item.variation_name) + ')' : ''}</div>
+            <div class="receipt-item-name">${index + 1}. ${escHtml(item.product_name)}</div>
             <div class="receipt-item-details">
                 <span>${item.qty} x ${formatRupiah(item.unit_price)}</span>
                 <span>${formatRupiah(item.subtotal)}</span>
@@ -1622,6 +1659,29 @@ function generateReceiptPrintHTML(data) {
     `).join('');
 
     const paymentMethod = escHtml(data.payment_method || 'Tunai');
+
+    // Breakdown rows: subtotal, diskon, biaya tambahan
+    const totalAmount = data.total_amount || data.grand_total;
+    const discountAmount = data.discount_amount || 0;
+    const additionalFee = data.additional_fee || 0;
+    const additionalFeeLabel = data.additional_fee_label ? escHtml(data.additional_fee_label) : 'Biaya Tambahan';
+
+    const needsBreakdown = discountAmount > 0 || additionalFee > 0;
+    const breakdownRows = needsBreakdown ? `
+        <div class="row subtotal">
+            <span>Subtotal</span>
+            <span>${formatRupiah(totalAmount)}</span>
+        </div>
+        ${discountAmount > 0 ? `<div class="row discount">
+            <span>Diskon</span>
+            <span>-${formatRupiah(discountAmount)}</span>
+        </div>` : ''}
+        ${additionalFee > 0 ? `<div class="row fee">
+            <span>${additionalFeeLabel}</span>
+            <span>+${formatRupiah(additionalFee)}</span>
+        </div>` : ''}
+        <hr style="border:none; border-top:1px dashed #ccc; margin:3px 0;">
+    ` : '';
 
     // Totals
     const paymentRows = !data.is_debt ? `
@@ -1674,6 +1734,9 @@ function generateReceiptPrintHTML(data) {
             #receiptPrint .receipt-item-details span:last-child { text-align: right; white-space: nowrap; font-weight: 700; color: #000; }
             #receiptPrint .receipt-totals { margin-top: 6px; }
             #receiptPrint .row { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 3px; color: #333; }
+            #receiptPrint .row.subtotal { color: #555; font-size: 10px; }
+            #receiptPrint .row.discount { color: #c00; font-size: 10px; }
+            #receiptPrint .row.fee { color: #333; font-size: 10px; }
             #receiptPrint .row.total { font-weight: bold; font-size: 12px; margin-bottom: 4px; color: #000; }
             #receiptPrint .row.change { font-weight: bold; color: #000; }
             #receiptPrint .row.kasbon { color: #cc0000; font-weight: bold; }
@@ -1707,6 +1770,7 @@ function generateReceiptPrintHTML(data) {
             <hr class="receipt-divider">
             
             <div class="receipt-totals">
+                ${breakdownRows}
                 <div class="row total">
                     <span>TOTAL</span>
                     <span>${formatRupiah(data.grand_total)}</span>

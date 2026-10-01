@@ -14,10 +14,36 @@ if (!$order) {
 unset($_SESSION['last_order']);
 
 $storePhone = getSetting('store_phone', '08123456789');
-$waNum = preg_replace('/^0/', '62', preg_replace('/[^0-9]/', '', $storePhone));
-$waNum = preg_replace('/^\+/', '', $waNum);
-$waMessage = urlencode("Halo, saya *{$order['customer_name']}* ingin konfirmasi pesanan dengan nomor invoice *{$order['invoice_number']}* senilai *" . formatRupiah($order['total']) . "*. Terima kasih! 🙏");
-$waLink = "https://wa.me/{$waNum}?text=$waMessage";
+
+// Build admin WA list for order confirmation
+$adminWaList = [];
+for ($i = 1; $i <= 3; $i++) {
+    $name = getSetting("admin_wa_name_$i", '');
+    $phone = getSetting("admin_wa_phone_$i", '');
+    if ($name && $phone) {
+        $waNum = preg_replace('/^0/', '62', preg_replace('/[^0-9]/', '', $phone));
+        $waNum = preg_replace('/^\+/', '', $waNum);
+        $waMsg = urlencode("Halo *{$name}*, saya *{$order['customer_name']}* ingin konfirmasi pesanan dengan nomor invoice *{$order['invoice_number']}* senilai *" . formatRupiah($order['total']) . "*. Terima kasih! 🙏");
+        $adminWaList[] = [
+            'name' => $name,
+            'phone' => $phone,
+            'wa_link' => "https://wa.me/{$waNum}?text={$waMsg}",
+        ];
+    }
+}
+
+// Fallback: jika tidak ada admin WA yang diisi, gunakan telepon toko
+if (empty($adminWaList)) {
+    $waNum = preg_replace('/^0/', '62', preg_replace('/[^0-9]/', '', $storePhone));
+    $waNum = preg_replace('/^\+/', '', $waNum);
+    $waMessage = urlencode("Halo, saya *{$order['customer_name']}* ingin konfirmasi pesanan dengan nomor invoice *{$order['invoice_number']}* senilai *" . formatRupiah($order['total']) . "*. Terima kasih! 🙏");
+    $adminWaList[] = [
+        'name' => 'Admin',
+        'phone' => $storePhone,
+        'wa_link' => "https://wa.me/{$waNum}?text={$waMessage}",
+    ];
+}
+$waLink = $adminWaList[0]['wa_link']; // default for modal fallback
 
 // Load configured payment methods for display
 $paymentBanks = [];
@@ -211,16 +237,23 @@ $paymentQris = [
             <?php endif; ?>
             
             <div style="display: flex; flex-direction: column; gap: 8px;">
-                <button onclick="confirmTransferAndOpen()" class="btn btn-primary btn-lg" style="background: #25D366; border-color: #25D366; width:100%; font-size:1rem; padding:14px; cursor:pointer;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle; margin-right:6px;"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.611.611l4.458-1.495A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.33 0-4.512-.67-6.36-1.827l-.356-.212-3.692 1.237 1.237-3.692-.212-.356A9.953 9.953 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-                    Konfirmasi via WhatsApp
-                </button>
+                <?php if (count($adminWaList) === 1): ?>
+                    <button onclick="confirmTransferAndOpen()" class="btn btn-primary btn-lg" style="background: #25D366; border-color: #25D366; width:100%; font-size:1rem; padding:14px; cursor:pointer;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle; margin-right:6px;"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.611.611l4.458-1.495A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.33 0-4.512-.67-6.36-1.827l-.356-.212-3.692 1.237 1.237-3.692-.212-.356A9.953 9.953 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+                        Konfirmasi via WhatsApp
+                    </button>
+                <?php else: ?>
+                    <button onclick="confirmTransferAndOpen()" class="btn btn-primary btn-lg" style="background: #25D366; border-color: #25D366; width:100%; font-size:1rem; padding:14px; cursor:pointer;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle; margin-right:6px;"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.611.611l4.458-1.495A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.33 0-4.512-.67-6.36-1.827l-.356-.212-3.692 1.237 1.237-3.692-.212-.356A9.953 9.953 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+                        Konfirmasi via WhatsApp
+                    </button>
+                <?php endif; ?>
                 <a href="<?= BASE_URL ?>/shop/index.php" class="btn btn-outline">Kembali ke Beranda</a>
             </div>
 
             <!-- Modal Konfirmasi Transfer -->
             <div id="transferModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:9999; align-items:center; justify-content:center;">
-                <div style="background:#fff; border-radius:16px; padding:28px 24px; max-width:380px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.2); text-align:center; animation:scaleIn 0.25s ease-out;">
+                <div style="background:#fff; border-radius:16px; padding:28px 24px; max-width:420px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.2); text-align:center; animation:scaleIn 0.25s ease-out;">
                     <div style="font-size:2.5rem; margin-bottom:12px;">💸</div>
                     <h3 style="font-size:1.125rem; font-weight:700; margin-bottom:8px; color:var(--gray-900);">Konfirmasi Pembayaran</h3>
                     <p style="color:var(--gray-600); font-size:0.9rem; margin-bottom:20px; line-height:1.5;">
@@ -228,11 +261,23 @@ $paymentQris = [
                         <span style="font-size:0.8rem; color:var(--gray-400);">Pastikan transfer sudah selesai sebelum konfirmasi.</span>
                     </p>
                     <div style="display:flex; flex-direction:column; gap:10px;">
-                        <a href="<?= $waLink ?>" target="_blank" id="btnSudahTransfer"
-                           onclick="closeTransferModal()"
-                           class="btn btn-primary" style="background:#25D366; border-color:#25D366; font-size:0.9375rem; padding:12px;">
-                            ✅ Ya, Sudah Transfer — Lanjut ke WA
-                        </a>
+                        <?php if (count($adminWaList) === 1): ?>
+                            <a href="<?= $adminWaList[0]['wa_link'] ?>" target="_blank"
+                               onclick="closeTransferModal()"
+                               class="btn btn-primary" style="background:#25D366; border-color:#25D366; font-size:0.9375rem; padding:12px;">
+                                ✅ Ya, Sudah Transfer — Lanjut ke WA
+                            </a>
+                        <?php else: ?>
+                            <div style="font-size:0.85rem; font-weight:600; color:var(--gray-700); margin-bottom:4px;">Pilih admin untuk konfirmasi:</div>
+                            <?php foreach ($adminWaList as $idx => $admin): ?>
+                            <a href="<?= $admin['wa_link'] ?>" target="_blank"
+                               onclick="closeTransferModal()"
+                               class="btn btn-primary" style="background:#25D366; border-color:#25D366; font-size:0.9rem; padding:11px; display:flex; align-items:center; justify-content:center; gap:8px;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.611.611l4.458-1.495A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.33 0-4.512-.67-6.36-1.827l-.356-.212-3.692 1.237 1.237-3.692-.212-.356A9.953 9.953 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+                                <?= htmlspecialchars($admin['name']) ?> (<?= htmlspecialchars($admin['phone']) ?>)
+                            </a>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                         <button onclick="closeTransferModal()" 
                                 class="btn btn-outline" style="color:var(--danger); border-color:var(--danger); font-size:0.9rem; padding:10px;">
                             ⏳ Belum, Saya Akan Transfer Dulu

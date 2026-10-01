@@ -213,14 +213,16 @@ if ($dateFrom === $dateTo) {
         <table>
             <thead>
                 <tr>
-                    <th width="5%" class="text-center">No</th>
-                    <th width="15%">Tanggal</th>
-                    <th width="15%">No. Invoice</th>
-                    <th width="20%">Pelanggan</th>
-                    <th width="10%" class="text-center">Sumber</th>
-                    <th width="10%" class="text-center">Metode</th>
-                    <th width="10%" class="text-center">Status</th>
-                    <th width="15%" class="text-right">Total (Rp)</th>
+                    <th width="4%" class="text-center">No</th>
+                    <th width="12%">Tanggal</th>
+                    <th width="13%">No. Invoice</th>
+                    <th width="13%">Pelanggan</th>
+                    <th width="8%" class="text-center">Sumber</th>
+                    <th width="8%" class="text-center">Metode</th>
+                    <th width="8%" class="text-center">Status</th>
+                    <th width="9%" class="text-right">Biaya Tmbh</th>
+                    <th width="13%">Keterangan</th>
+                    <th width="12%" class="text-right">Total (Rp)</th>
                 </tr>
             </thead>
             <tbody>
@@ -233,11 +235,13 @@ if ($dateFrom === $dateTo) {
                         <td class="text-center"><?= htmlspecialchars($trx['sale_source']) ?></td>
                         <td class="text-center"><?= htmlspecialchars($trx['payment_method'] ?? '-') ?></td>
                         <td class="text-center"><?= $trx['status'] === 'Paid' ? 'Lunas' : 'Kredit' ?></td>
+                        <td class="text-right"><?= number_format($trx['additional_fee'] ?? 0, 0, ',', '.') ?></td>
+                        <td><?= htmlspecialchars($trx['additional_fee_label'] ?? '-') ?></td>
                         <td class="text-right"><?= number_format($trx['grand_total'], 0, ',', '.') ?></td>
                     </tr>
                 <?php endforeach; ?>
                 <?php if(empty($transactions)): ?>
-                    <tr><td colspan="8" class="text-center">Tidak ada transaksi pada periode ini.</td></tr>
+                    <tr><td colspan="10" class="text-center">Tidak ada transaksi pada periode ini.</td></tr>
                 <?php endif; ?>
             </tbody>
         </table>

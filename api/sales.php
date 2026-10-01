@@ -34,11 +34,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $notes = $input['notes'] ?? '';
             $discountPercent = isset($input['discount_percent']) ? max(0, min(100, (float)$input['discount_percent'])) : 0;
             $additionalFee = (float)($input['additional_fee'] ?? 0);
+            $additionalFeeLabel = isset($input['additional_fee_label']) ? sanitize($input['additional_fee_label']) : '';
             $dueDate = $input['due_date'] ?? date('Y-m-d', strtotime('+' . getSetting('default_due_days', 30) . ' days'));
-            
-            if ($additionalFee > 0) {
-                $notes = trim($notes . " (Biaya Tambahan: " . formatRupiah($additionalFee) . ")");
-            }
             
             if (empty($items)) {
                 throw new Exception('Keranjang kosong.');
@@ -109,8 +106,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             
             // Insert sale
-            $stmt = $db->prepare("INSERT INTO sales (invoice_number, customer_id, customer_name, cashier_id, sale_source, total_amount, discount_amount, grand_total, status, notes) VALUES (?,?,?,?,?,?,?,?,?,?)");
-            $stmt->execute([$invoiceNumber, $customerId, $customerName, $cashierId, $saleSource, $totalAmount, $discountAmount, $grandTotal, $status, $notes]);
+            $stmt = $db->prepare("INSERT INTO sales (invoice_number, customer_id, customer_name, cashier_id, sale_source, total_amount, discount_amount, additional_fee, additional_fee_label, grand_total, status, notes) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)");
+            $stmt->execute([$invoiceNumber, $customerId, $customerName, $cashierId, $saleSource, $totalAmount, $discountAmount, $additionalFee, $additionalFeeLabel, $grandTotal, $status, $notes]);
             $saleId = $db->lastInsertId();
             
             // Insert sale details & reduce stock
@@ -158,6 +155,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'items' => $processedItems,
                 'total_amount' => $totalAmount,
                 'discount_amount' => $discountAmount,
+                'additional_fee' => $additionalFee,
+                'additional_fee_label' => $additionalFeeLabel,
                 'grand_total' => $grandTotal,
                 'paid_amount' => $paidAmount,
                 'change' => max(0, $paidAmount - $grandTotal),

@@ -139,9 +139,39 @@ $hasOpenShift = $stmt->fetch() ? 'true' : 'false';
                 </div>
             </div>
             
+            <!-- Biaya Tambahan di Keranjang
+            <div class="pos-cart-fee" id="cartFeeSection">
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <div style="flex:1;">
+                        <label style="font-size:0.75rem; font-weight:600; color:var(--gray-500); display:block; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.05em;">Biaya Tambahan</label>
+                        <input type="number" id="paymentAdditionalFee" min="0" value="0"
+                               oninput="onCartFeeInput()"
+                               onclick="this.select()"
+                               placeholder="0"
+                               style="width:100%; border-radius:8px; border:1px solid var(--border-color); padding:8px 10px; font-size:0.9375rem; font-weight:600; box-sizing:border-box; background:var(--gray-50);">
+                    </div>
+                    <div style="flex:1.5;" id="cartFeeLabelWrap" style="display:block;">
+                        <label style="font-size:0.75rem; font-weight:600; color:var(--gray-500); display:block; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.05em;">Keterangan <span style="font-weight:400;">(opsional)</span></label>
+                        <input type="text" id="paymentFeeLabel"
+                               placeholder="Ongkos kirim, packing, dll."
+                               style="width:100%; border-radius:8px; border:1px solid var(--border-color); padding:8px 10px; font-size:0.8125rem; box-sizing:border-box; background:var(--gray-50);">
+                    </div>
+                </div>
+            </div>
+
+             -->
+
             <!-- Cart Footer: Total & Pay -->
             <div class="pos-cart-footer">
                 <div class="pos-totals">
+                    <div class="pos-total-row" id="cartSubtotalRow" style="display:none; font-size:0.875rem; color:var(--gray-500);">
+                        <span>Subtotal</span>
+                        <span id="cartSubtotal">Rp 0</span>
+                    </div>
+                    <div class="pos-total-row" id="cartFeeRow" style="display:none; font-size:0.875rem; color:var(--gray-600);">
+                        <span id="cartFeeLabel">Biaya Tambahan</span>
+                        <span id="cartFeeDisplay">Rp 0</span>
+                    </div>
                     <div class="pos-total-row grand-total">
                         <span>Total</span>
                         <span id="cartTotal">Rp 0</span>
@@ -289,25 +319,17 @@ $hasOpenShift = $stmt->fetch() ? 'true' : 'false';
                     <button onclick="clearCustomer()" style="background:none;border:none;cursor:pointer;color:var(--gray-400);font-size:1.25rem;" title="Hapus pelanggan">&times;</button>
                 </div>
 
-                <!-- Discount & Additional Fee -->
-                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                    <div style="flex:1.5;">
-                        <label style="font-size:0.8125rem; font-weight:600; color:var(--gray-700); display:block; margin-bottom:6px;">Diskon</label>
-                        <div class="pay-discount-row">
-                            <input type="number" id="paymentDiscount" min="0" value="0"
-                                   oninput="calculateChange()" onclick="this.select()"
-                                   class="pay-discount-input">
-                            <div class="pay-disc-type-toggle">
-                                <button class="pay-disc-type-btn active" data-type="persen" onclick="setPayDiscountType('persen')">%</button>
-                                <button class="pay-disc-type-btn" data-type="rupiah" onclick="setPayDiscountType('rupiah')">Rp</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div style="flex:1;">
-                        <label style="font-size:0.8125rem; font-weight:600; color:var(--gray-700); display:block; margin-bottom:6px;">Biaya Tambahan</label>
-                        <input type="number" id="paymentAdditionalFee" min="0" value="0"
+                <!-- Discount only (fee moved to cart) -->
+                <div style="margin-bottom: 15px;">
+                    <label style="font-size:0.8125rem; font-weight:600; color:var(--gray-700); display:block; margin-bottom:6px;">Diskon</label>
+                    <div class="pay-discount-row">
+                        <input type="number" id="paymentDiscount" min="0" value="0"
                                oninput="calculateChange()" onclick="this.select()"
-                               class="pay-discount-input" style="border-radius: 8px; width: 100%; border: 1px solid var(--border-color);">
+                               class="pay-discount-input">
+                        <div class="pay-disc-type-toggle">
+                            <button class="pay-disc-type-btn active" data-type="persen" onclick="setPayDiscountType('persen')">%</button>
+                            <button class="pay-disc-type-btn" data-type="rupiah" onclick="setPayDiscountType('rupiah')">Rp</button>
+                        </div>
                     </div>
                 </div>
                 
@@ -658,19 +680,35 @@ $hasOpenShift = $stmt->fetch() ? 'true' : 'false';
             payBtn.disabled = true;
             payBtn.innerHTML = '<div class="spinner" style="width:20px;height:20px;margin:0 auto;"></div>';
             const discountEl = document.getElementById('paymentDiscount');
+            const discValRaw = parseFloat(discountEl?.value) || 0;
+            const discType = document.querySelector('#modalPayment .pay-disc-type-btn.active')?.dataset.type || 'persen';
+            const feeEl = document.getElementById('paymentAdditionalFee');
+            const additionalFee = parseFloat(feeEl?.value) || 0;
+            const additionalFeeLabel = document.getElementById('paymentFeeLabel')?.value.trim() || '';
+
+            let discountAmount = 0;
+            if (discType === 'persen') {
+                discountAmount = total * Math.max(0, Math.min(100, discValRaw)) / 100;
+            } else {
+                discountAmount = Math.min(discValRaw, total);
+            }
+            const discountPercent = total > 0 ? (discountAmount / total) * 100 : 0;
+
             try {
                 const res = await fetch(`${BASE}/api/sales.php`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
                     body: JSON.stringify({
                         action: 'create_sale',
-                        items: cart.map(item => ({ variation_id: item.variation_id, qty: item.qty })),
+                        items: cart.map(item => ({ variation_id: item.variation_id, qty: item.qty, custom_price: item.custom_price ?? null })),
                         customer_id: selectedCustomer?.id || null,
                         customer_name: document.getElementById('customerSearch').value.trim() || null,
                         sale_source: 'POS',
-                        payment_method: document.getElementById('selectedMethod').value === 'Kasbon' ? 'Tunai' : document.getElementById('selectedMethod').value,
-                        paid_amount: parseInt((document.getElementById('paymentAmount')?.dataset?.raw || '0'), 10) || 0,
-                        discount_percent: discountEl ? (parseFloat(discountEl.value) || 0) : 0,
+                        payment_method: 'Tunai',
+                        paid_amount: 0,
+                        discount_percent: discountPercent,
+                        additional_fee: additionalFee,
+                        additional_fee_label: additionalFeeLabel,
                         is_debt: true,
                     }),
                 });
@@ -682,6 +720,12 @@ $hasOpenShift = $stmt->fetch() ? 'true' : 'false';
                     clearCustomer();
                     renderCart();
                     loadProducts();
+                    // Reset fee inputs
+                    if (feeEl) feeEl.value = '0';
+                    if (discountEl) discountEl.value = '0';
+                    const feeLabelEl = document.getElementById('paymentFeeLabel');
+                    if (feeLabelEl) feeLabelEl.value = '';
+                    document.getElementById('feeDescRow').style.display = 'none';
                     showToast('Kasbon berhasil dicatat! ' + data.data.invoice_number, 'success');
                 } else {
                     showToast(data.message, 'error');

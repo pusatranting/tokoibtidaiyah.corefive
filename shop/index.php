@@ -222,7 +222,7 @@ function getCategoryIcon($name) {
                 </div>
                 <div class="banner-text-container" style="position: relative; z-index: 2;">
                     <h1 style="line-height: 1.2; margin-bottom: 16px; font-weight: 800;">
-                        <span style="font-size: clamp(1.5rem, 4vw, 2.5rem); font-weight: 800; color: #fff;">Selamat Datang di <?= $storeName ?></span>
+                        <span style="font-size: clamp(1.5rem, 4vw, 2.5rem); font-weight: 800; color: #fff;">Selamat Belanja</span>
                     </h1>
                     <p style="font-size: clamp(0.85rem, 1.2vw, 1rem); line-height: 1.6; margin-bottom: 24px; opacity: 0.95; color: rgba(255, 255, 255, 0.9); max-width: 600px;">Temukan berbagai Kitab Pelajaran Madrasah Miftahul Ulum Ibtidaiyah Pondok Pesantren Sidogiri. Dapatkan harga spesial untuk pembelian grosir!</p>
                     <div class="hero-buttons">
